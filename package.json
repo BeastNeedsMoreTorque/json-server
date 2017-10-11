@@ -1,6 +1,6 @@
 {
   "name": "json-server",
-  "version": "0.9.0",
+  "version": "0.12.0",
   "description": "Serves JSON files through REST routes.",
   "main": "./lib/server/index.js",
   "bin": "./bin/index.js",
@@ -15,44 +15,58 @@
     "cors": "^2.3.0",
     "errorhandler": "^1.2.0",
     "express": "^4.9.5",
+    "express-urlrewrite": "^1.2.0",
+    "json-parse-helpfulerror": "^1.0.3",
     "lodash": "^4.11.2",
-    "lowdb": "^0.14.0",
+    "lodash-id": "^0.13.0",
+    "lowdb": "^0.15.0",
     "method-override": "^2.1.2",
     "morgan": "^1.3.1",
+    "nanoid": "^0.2.2",
     "object-assign": "^4.0.1",
+    "please-upgrade-node": "^3.0.1",
     "pluralize": "^3.0.0",
     "request": "^2.72.0",
     "server-destroy": "^1.0.1",
-    "shortid": "^2.2.6",
-    "underscore-db": "^0.12.0",
     "update-notifier": "^1.0.2",
     "yargs": "^6.0.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.10.1",
-    "babel-preset-es2015": "^6.16.0",
+    "babel-cli": "^6.24.0",
+    "babel-preset-env": "^1.3.2",
     "babel-register": "^6.16.3",
     "cross-env": "^2.0.1",
-    "husky": "^0.11.4",
+    "eslint": "^3.19.0",
+    "eslint-config-prettier": "^2.3.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.6.1",
+    "eslint-plugin-node": "^5.1.0",
+    "eslint-plugin-prettier": "^2.1.2",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "husky": "^0.14.3",
     "markdown-toc": "^0.13.0",
     "mkdirp": "^0.5.1",
-    "mocha": "^3.1.2",
+    "mocha": "^3.2.0",
     "os-tmpdir": "^1.0.1",
+    "pkg-ok": "^1.0.1",
+    "prettier": "^1.5.2",
     "rimraf": "^2.5.2",
     "server-ready": "^0.3.1",
     "standard": "^8.3.0",
-    "supertest": "^2.0.0",
+    "supertest": "^3.0.0",
     "temp-write": "^2.1.0"
   },
   "scripts": {
-    "test": "npm run test:cli && npm run test:server && standard --fix",
+    "test": "npm run test:cli && npm run test:server && eslint .",
     "test:cli": "npm run build && cross-env NODE_ENV=test mocha test/cli/*.js",
     "test:server": "cross-env NODE_ENV=test mocha test/server/*.js",
-    "start": "node bin",
-    "prepush": "npm t",
+    "start": "babel-node src/cli/bin",
+    "format": "eslint . --fix",
     "build": "babel src -d lib --copy-files",
     "toc": "markdown-toc -i README.md",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build && pkg-ok",
+    "precommit": "npm test"
   },
   "repository": {
     "type": "git",
@@ -80,13 +94,7 @@
     "url": "https://github.com/typicode/json-server/issues"
   },
   "homepage": "https://github.com/typicode/json-server",
-  "standard": {
-    "fix": true,
-    "env": {
-      "mocha": true
-    }
-  },
   "engines": {
-    "node": ">= 0.12"
+    "node": ">=4"
   }
 }

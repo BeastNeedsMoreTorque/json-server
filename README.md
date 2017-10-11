@@ -1,4 +1,4 @@
-# JSON Server [![](https://travis-ci.org/typicode/json-server.svg?branch=master)](https://travis-ci.org/typicode/json-server) [![](https://badge.fury.io/js/json-server.svg)](http://badge.fury.io/js/json-server) [![](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/typicode/json-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# JSON Server [![](https://travis-ci.org/typicode/json-server.svg?branch=master)](https://travis-ci.org/typicode/json-server) [![](https://badge.fury.io/js/json-server.svg)](http://badge.fury.io/js/json-server) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier) [![](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/typicode/json-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Get a full fake REST API with __zero coding__ in __less than 30 seconds__ (seriously)
 
@@ -8,8 +8,10 @@ Created with <3 for front-end developers who need a quick back-end for prototypi
 * [JSONPlaceholder - Live running version](http://jsonplaceholder.typicode.com)
 
 See also:
-* :hotel: [hotel - Start apps from your browser and get local dev domains in seconds](https://github.com/typicode/hotel)
 * :dog: [husky - Git hooks made easy](https://github.com/typicode/husky)
+* :hotel: [hotel - developer tool with local .dev domain and https out of the box](https://github.com/typicode/hotel)
+* :atom_symbol: [react-fake-props - generate fake props for your React tests (Jest, Enzyme, ...)](https://github.com/typicode/react-fake-props)
+* :heart: [Patreon page - if you want to support JSON Server development](https://www.patreon.com/typicode)
 
 ## Table of contents
 
@@ -17,6 +19,7 @@ See also:
 
 <!-- toc -->
 
+- [Sponsorship](#sponsorship)
 - [Example](#example)
 - [Install](#install)
 - [Routes](#routes)
@@ -48,6 +51,7 @@ See also:
     + [Custom output example](#custom-output-example)
     + [Rewriter example](#rewriter-example)
     + [Mounting JSON Server on another endpoint example](#mounting-json-server-on-another-endpoint-example)
+    + [API](#api)
   * [Deployment](#deployment)
 - [Links](#links)
   * [Video](#video)
@@ -58,6 +62,12 @@ See also:
 <!-- tocstop -->
 
 </details>
+
+## Sponsorship
+
+Development of JSON Server and my other projects is generously supported by contributions from people. If you are benefiting from my projects and would like to help keep them financially sustainable, please visit [Patreon](https://patreon.com/typicode).
+
+If you're a company, you can have your logo here.
 
 ## Example
 
@@ -102,7 +112,7 @@ $ npm install -g json-server
 
 ## Routes
 
-Based on the previous `db.json` file, here are all the default routes. You can also add [other routes](#add-routes) using `--routes`.
+Based on the previous `db.json` file, here are all the default routes. You can also add [other routes](#add-custom-routes) using `--routes`.
 
 ### Plural routes
 
@@ -153,8 +163,14 @@ _10 items are returned by default_
 Add `_sort` and `_order` (ascending order by default)
 
 ```
-GET /posts?_sort=views&_order=DESC
-GET /posts/1/comments?_sort=votes&_order=ASC
+GET /posts?_sort=views&_order=asc
+GET /posts/1/comments?_sort=votes&_order=asc
+```
+
+For multiple fields, use the following format:
+
+```
+GET /posts?_sort=user,views&_order=desc,asc
 ```
 
 ### Slice
@@ -166,6 +182,8 @@ GET /posts?_start=20&_end=30
 GET /posts/1/comments?_start=20&_end=30
 GET /posts/1/comments?_start=20&_limit=10
 ```
+
+_Works exactly as [Array.slice](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/slice) (i.e. `_start` is inclusive and `_end` exclusive)_
 
 ### Operators
 
@@ -211,7 +229,7 @@ GET /comments?_expand=post
 GET /comments/1?_expand=post
 ```
 
-To get or create nested resources (by default one level, [add routes](#add-routes) for more)
+To get or create nested resources (by default one level, [add custom routes](#add-custom-routes) for more)
 
 ```
 GET  /posts/1/comments
@@ -276,11 +294,11 @@ Using JS instead of a JSON file, you can create data programmatically.
 
 ```javascript
 // index.js
-module.exports = function() {
-  var data = { users: [] }
+module.exports = () => {
+  const data = { users: [] }
   // Create 1000 users
-  for (var i = 0; i < 1000; i++) {
-    data.users.push({ id: i, name: 'user' + i })
+  for (let i = 0; i < 1000; i++) {
+    data.users.push({ id: i, name: `user${i}` })
   }
   return data
 }
@@ -302,9 +320,10 @@ Create a `routes.json` file. Pay attention to start every route with `/`.
 
 ```json
 {
-  "/api/": "/",
-  "/blog/:resource/:id/show": "/:resource/:id",
-  "/blog/:category": "/posts/:id?category=:category"
+  "/api/*": "/$1",
+  "/:resource/:id/show": "/:resource/:id",
+  "/posts/:category": "/posts?category=:category",
+  "/articles\\?id=:id": "/posts/:id"
 }
 ```
 
@@ -319,8 +338,9 @@ Now you can access resources using additional routes.
 ```sh
 /api/posts # → /posts
 /api/posts/1  # → /posts/1
-/blog/posts/1/show # → /posts/1
-/blog/javascript # → /posts?category=javascript
+/posts/1/show # → /posts/1
+/posts/javascript # → /posts?category=javascript
+/articles?id=1 # → /posts/1
 ```
 
 ### Add middlewares
@@ -329,7 +349,7 @@ You can add your middlewares from the CLI using `--middlewares` option:
 
 ```js
 // hello.js
-module.exports = function (req, res, next) {
+module.exports = (req, res, next) => {
   res.header('X-Hello', 'World')
   next()
 }
@@ -359,6 +379,8 @@ Options:
   --snapshots, -S    Set snapshots directory                      [default: "."]
   --delay, -d        Add delay to responses (ms)
   --id, -i           Set database id property (e.g. _id)         [default: "id"]
+  --foreignKeySuffix, --fks  Set foreign key suffix, (e.g. _id as in post_id)
+                                                                 [default: "Id"]
   --quiet, -q        Suppress log messages from output                 [boolean]
   --help, -h         Show help                                         [boolean]
   --version, -v      Show version number                               [boolean]
@@ -385,16 +407,20 @@ If you need to add authentication, validation, or __any behavior__, you can use 
 
 #### Simple example
 
+```sh
+$ npm install json-server --save-dev
+```
+
 ```js
 // server.js
-var jsonServer = require('json-server')
-var server = jsonServer.create()
-var router = jsonServer.router('db.json')
-var middlewares = jsonServer.defaults()
+const jsonServer = require('json-server')
+const server = jsonServer.create()
+const router = jsonServer.router('db.json')
+const middlewares = jsonServer.defaults()
 
 server.use(middlewares)
 server.use(router)
-server.listen(3000, function () {
+server.listen(3000, () => {
   console.log('JSON Server is running')
 })
 ```
@@ -406,8 +432,8 @@ $ node server.js
 The path you provide to the `jsonServer.router` function  is relative to the directory from where you launch your node process. If you run the above code from another directory, it’s better to use an absolute path:
 
 ```js
-var path = require('path')
-var router = jsonServer.router(path.join(__dirname, 'db.json'))
+const path = require('path')
+const router = jsonServer.router(path.join(__dirname, 'db.json'))
 ```
 
 For an in-memory database, simply pass an object to `jsonServer.router()`.
@@ -419,23 +445,23 @@ Please note also that `jsonServer.router()` can be used in existing Express proj
 Let's say you want a route that echoes query parameters and another one that set a timestamp on every resource created.
 
 ```js
-var jsonServer = require('json-server')
-var server = jsonServer.create()
-var router = jsonServer.router('db.json')
-var middlewares = jsonServer.defaults()
+const jsonServer = require('json-server')
+const server = jsonServer.create()
+const router = jsonServer.router('db.json')
+const middlewares = jsonServer.defaults()
 
 // Set default middlewares (logger, static, cors and no-cache)
 server.use(middlewares)
 
 // Add custom routes before JSON Server router
-server.get('/echo', function (req, res) {
+server.get('/echo', (req, res) => {
   res.jsonp(req.query)
 })
 
 // To handle POST, PUT and PATCH you need to use a body-parser
 // You can use the one used by JSON Server
 server.use(jsonServer.bodyParser)
-server.use(function (req, res, next) {
+server.use((req, res, next) => {
   if (req.method === 'POST') {
     req.body.createdAt = Date.now()
   }
@@ -445,7 +471,7 @@ server.use(function (req, res, next) {
 
 // Use default router
 server.use(router)
-server.listen(3000, function () {
+server.listen(3000, () => {
   console.log('JSON Server is running')
 })
 ```
@@ -453,13 +479,13 @@ server.listen(3000, function () {
 #### Access control example
 
 ```js
-var jsonServer = require('json-server')
-var server = jsonServer.create()
-var router = jsonServer.router('db.json')
-var middlewares = jsonServer.defaults()
+const jsonServer = require('json-server')
+const server = jsonServer.create()
+const router = jsonServer.router('db.json')
+const middlewares = jsonServer.defaults()
 
 server.use(middlewares)
-server.use(function (req, res, next) {
+server.use((req, res, next) => {
  if (isAuthorized(req)) { // add your authorization logic here
    next() // continue to JSON Server router
  } else {
@@ -467,20 +493,31 @@ server.use(function (req, res, next) {
  }
 })
 server.use(router)
-server.listen(3000, function () {
+server.listen(3000, () => {
   console.log('JSON Server is running')
 })
 ```
-
 #### Custom output example
 
 To modify responses, overwrite `router.render` method:
 
 ```javascript
 // In this example, returned resources will be wrapped in a body property
-router.render = function (req, res) {
+router.render = (req, res) => {
   res.jsonp({
-   body: res.locals.data
+    body: res.locals.data
+  })
+}
+```
+
+You can set your own status code for the response:
+
+
+```javascript
+// In this example we simulate a server side error response
+router.render = (req, res) => {
+  res.status(500).jsonp({
+    error: "error message here"
   })
 }
 ```
@@ -492,7 +529,7 @@ To add rewrite rules, use `jsonServer.rewriter()`:
 ```javascript
 // Add this before server.use(router)
 server.use(jsonServer.rewriter({
-  '/api/': '/',
+  '/api/*': '/$1',
   '/blog/:resource/:id/show': '/:resource/:id'
 }))
 ```
@@ -504,6 +541,27 @@ Alternatively, you can also mount the router on `/api`.
 ```javascript
 server.use('/api', router)
 ```
+
+#### API
+
+__`jsonServer.create()`__
+
+Returns an Express server.
+
+__`jsonServer.defaults([options])`__
+
+Returns middlewares used by JSON Server.
+
+* options
+  * `static` path to static files
+  * `logger` enable logger middleware (default: true)
+  * `bodyParser` enable body-parser middleware (default: true)
+  * `noCors` disable CORS (default: false)
+  * `readOnly` accept only GET requests (default: false)
+  
+__`jsonServer.router([path|object])`__
+
+Returns JSON Server router. 
 
 ### Deployment
 
@@ -522,6 +580,7 @@ You can deploy JSON Server. For example, [JSONPlaceholder](http://jsonplaceholde
 * [ng-admin: Add an AngularJS admin GUI to any RESTful API](http://marmelab.com/blog/2014/09/15/easy-backend-for-your-restful-api.html)
 * [Fast prototyping using Restangular and Json-server](http://glebbahmutov.com/blog/fast-prototyping-using-restangular-and-json-server/)
 * [Create a Mock REST API in Seconds for Prototyping your Frontend](https://coligo.io/create-mock-rest-api-with-json-server/)
+* [No API? No Problem! Rapid Development via Mock APIs](https://medium.com/@housecor/rapid-development-via-mock-apis-e559087be066#.93d7w8oro)
 
 ### Third-party tools
 
@@ -529,7 +588,8 @@ You can deploy JSON Server. For example, [JSONPlaceholder](http://jsonplaceholde
 * [Docker JSON Server](https://github.com/clue/docker-json-server)
 * [JSON Server GUI](https://github.com/naholyr/json-server-gui)
 * [JSON file generator](https://github.com/dfsq/json-server-init)
+* [JSON Server extension](https://github.com/maty21/json-server-extension)
 
 ## License
 
-MIT - [Typicode](https://github.com/typicode)
+MIT - [Typicode](https://github.com/typicode) - [Patreon](https://www.patreon.com/typicode)

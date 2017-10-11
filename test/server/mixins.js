@@ -1,31 +1,26 @@
 const assert = require('assert')
 const _ = require('lodash')
-const _db = require('underscore-db')
+const lodashId = require('lodash-id')
 const mixins = require('../../src/server/mixins')
 
 describe('mixins', () => {
   let db
 
   before(() => {
-    _.mixin(_db)
+    _.mixin(lodashId)
     _.mixin(mixins)
   })
 
   beforeEach(() => {
     db = {
-      posts: [
-        { id: 1, comment: 1 }
-      ],
+      posts: [{ id: 1, comment: 1 }],
       comments: [
         { id: 1, postId: 1 },
         // Comments below references a post that doesn't exist
         { id: 2, postId: 2 },
         { id: 3, postId: 2 }
       ],
-      photos: [
-        { id: '1' },
-        { id: '2' }
-      ]
+      photos: [{ id: '1' }, { id: '2' }]
     }
   })
 
@@ -36,7 +31,16 @@ describe('mixins', () => {
         { name: 'comments', id: 3 }
       ]
 
-      assert.deepEqual(_.getRemovable(db), expected)
+      assert.deepEqual(_.getRemovable(db, { foreignKeySuffix: 'Id' }), expected)
+    })
+
+    it('should support custom foreignKeySuffix', () => {
+      const expected = [
+        { name: 'comments', id: 2 },
+        { name: 'comments', id: 3 }
+      ]
+
+      assert.deepEqual(_.getRemovable(db, { foreignKeySuffix: 'Id' }), expected)
     })
   })
 

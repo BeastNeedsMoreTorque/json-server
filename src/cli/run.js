@@ -7,13 +7,16 @@ const enableDestroy = require('server-destroy')
 const pause = require('connect-pause')
 const is = require('./utils/is')
 const load = require('./utils/load')
-const example = require('./example.json')
 const jsonServer = require('../server')
 
+const example = {
+  posts: [{ id: 1, title: 'json-server', author: 'typicode' }],
+  comments: [{ id: 1, body: 'some comment', postId: 1 }],
+  profile: { name: 'typicode' }
+}
+
 function prettyPrint(argv, object, rules) {
-  const host = argv.host === '0.0.0.0' ? 'localhost' : argv.host
-  const port = argv.port
-  const root = `http://${host}:${port}`
+  const root = `http://${argv.host}:${argv.port}`
 
   console.log()
   console.log(chalk.bold('  Resources'))

@@ -53,27 +53,28 @@ module.exports = (source, opts = { foreignKeySuffix: 'Id' }) => {
   router.use(nested(opts))
 
   // Create routes
-  db
-    .forEach((value, key) => {
-      if (_.isPlainObject(value)) {
-        router.use(`/${key}`, singular(db, key))
-        return
-      }
+  db.forEach((value, key) => {
+    if (_.isPlainObject(value)) {
+      router.use(`/${key}`, singular(db, key))
+      return
+    }
 
-      if (_.isArray(value)) {
-        router.use(`/${key}`, plural(db, key, opts))
-        return
-      }
+    if (_.isArray(value)) {
+      router.use(`/${key}`, plural(db, key, opts))
+      return
+    }
 
-      const msg =
-        `Type of "${key}" (${typeof value}) ${_.isObject(source)
-          ? ''
-          : `in ${source}`} is not supported. ` +
-        `Use objects or arrays of objects.`
+    var sourceMessage = ''
+    if (!_.isObject(source)) {
+      sourceMessage = `in ${source}`
+    }
 
-      throw new Error(msg)
-    })
-    .value()
+    const msg =
+      `Type of "${key}" (${typeof value}) ${sourceMessage} is not supported. ` +
+      `Use objects or arrays of objects.`
+
+    throw new Error(msg)
+  }).value()
 
   router.use((req, res) => {
     if (!res.locals.data) {
